@@ -22,6 +22,7 @@ public class Videos {
 	private String videoExtension;
 	private String bannerExtension;
 	private String video;
+	private String teacher;
 	public Long getId() {
 		return id;
 	}
@@ -85,8 +86,14 @@ public class Videos {
 	public void setVideo(String video) {
 		this.video = video;
 	}
+	public String getTeacher() {
+		return teacher;
+	}
+	public void setTeacher(String teacher) {
+		this.teacher = teacher;
+	}
 	public Videos(Long id, Long playList, String title, String banner, Timestamp uploadedAt, Long uploadedBy,
-			String duration, String videoExtension, String bannerExtension, String video) {
+			String duration, String videoExtension, String bannerExtension, String video, String teacher) {
 		super();
 		this.id = id;
 		this.playList = playList;
@@ -98,6 +105,7 @@ public class Videos {
 		this.videoExtension = videoExtension;
 		this.bannerExtension = bannerExtension;
 		this.video = video;
+		this.teacher = teacher;
 	}
 	public Videos() {
 		super();

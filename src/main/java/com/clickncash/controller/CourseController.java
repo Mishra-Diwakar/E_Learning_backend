@@ -39,12 +39,17 @@ import com.clickncash.dto.PurchasedDto;
 import com.clickncash.entity.Course;
 import com.clickncash.entity.CourseFeature;
 import com.clickncash.entity.CourseTopics;
+import com.clickncash.entity.Queries;
 import com.clickncash.entity.Videos;
 import com.clickncash.model.Data;
 import com.clickncash.model.Feature;
 import com.clickncash.model.PurchasedCourseStudent;
+import com.clickncash.model.RatingModal;
 import com.clickncash.model.Topic;
 import com.clickncash.repository.CourseRepository;
+import com.clickncash.repository.PurchasedCourseRepository;
+import com.clickncash.repository.QueriesRepository;
+import com.clickncash.repository.RatingRepository;
 import com.clickncash.repository.VideosRepository;
 import com.clickncash.service.CourseService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,13 +76,22 @@ public class CourseController {
 	
 	@Autowired
 	private CourseService courseService;
+	
+	@Autowired
+	private PurchasedCourseRepository purchasedCourseRepository;
+	
+	@Autowired
+	private RatingRepository ratingRepository;
+	
+	@Autowired
+	private QueriesRepository queriesRepository;
 
 	@PostMapping(path = "/create", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	public HashMap<String, Object> uploadCourse(@RequestParam MultipartFile file, @RequestParam String name,
 			@RequestParam("header") String header, @RequestParam("startDate") String startDate,
 			@RequestParam("startTime") String startTime, @RequestParam("fee") Long fee,
 			@RequestParam("duration") String duration, @RequestParam("description") String description,
-			HttpServletRequest request) {
+			@RequestParam("teacher") Long teacher, HttpServletRequest request) {
 		HashMap<String, Object> returnMap = new HashMap<String, Object>();
 		try {
 			Long userId = null;
@@ -105,6 +119,7 @@ public class CourseController {
 				course.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 				course.setUpdatedBy(userId);
 				course.setStartTime(startTime);
+				course.setTeacher(teacher);
 				courseRepository.save(course);
 				returnMap.put("isError", false);
 				returnMap.put("msg", "Course created..");
@@ -153,6 +168,18 @@ public class CourseController {
 	@GetMapping("/list")
 	private List<CourseDto> getCourses() {
 		return courseRepository.findList();
+	}
+	@GetMapping("/live")
+	private List<CourseDto> getLiveCourses() {
+		List<CourseDto> findLiveCourses = courseRepository.findLiveCourses();
+		findLiveCourses.forEach(e->{
+			System.out.println("banner: "+e.getBanner()+", "+e.getTeacher()+", "+e.getId()+", "+e.getName()+", "+e.getFee());
+		});
+		return courseRepository.findLiveCourses();
+	}
+	@GetMapping("/upcoming")
+	private List<CourseDto> getUpcomingCourses() {
+		return courseRepository.findUpcomingCourses();
 	}
 
 	@PostMapping("/getOne")
@@ -427,7 +454,8 @@ public class CourseController {
 	
 	@PostMapping("/uploadVideo")
 	private HashMap<String, Object> uploadVideo(@RequestParam MultipartFile file, @RequestParam MultipartFile bannerImage ,@RequestParam("playList") Long playlist,
-			@RequestParam("title") String title,@RequestParam("duration") int duration,  HttpServletRequest request ){
+			@RequestParam("title") String title,@RequestParam("duration") int duration,
+			@RequestParam String teacher, HttpServletRequest request ){
 		HashMap<String, Object> returnMap = new HashMap<String, Object>();
 		try {
 			Long userId = null;
@@ -461,6 +489,7 @@ public class CourseController {
 				videos.setBannerExtension(bannerExtension);
 				videos.setVideoExtension(videoExtension);
 				videos.setVideo(file.getOriginalFilename());
+				videos.setTeacher(teacher);
 				videosRepository.save(videos);
 				returnMap.put("isError", false);
 				returnMap.put("msg", "video uploaded");
@@ -635,5 +664,58 @@ public class CourseController {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+
+	@PostMapping("/totalEnroll")
+	private HashMap<String, Object> totalEnrollStudent(@RequestBody Course course) {
+		Long countTotalEnrolled = purchasedCourseRepository.countTotalEnrolled(course.getId());
+		HashMap<String, Object> returnMap = new HashMap<String, Object>();
+		returnMap.put("total", countTotalEnrolled);		
+		return returnMap;
+	}
+	
+	@PostMapping("/search")
+	private List<RatingModal> searchCourse(@RequestBody Course course) {
+		try {
+			List<RatingModal> ratingModals = new ArrayList<RatingModal>();
+			List<CourseDto> searchCourse = courseRepository.searchCourse(course.getName());
+			searchCourse.forEach(e->{
+				Long rate = ratingRepository.countByCourseId(e.getId());
+				if (rate==null) {
+					rate = 0L;
+				}
+			 	ratingModals.add(new RatingModal(e.getId(), e.getName(), e.getTeacher(), e.getHeader(),e.getBanner(), e.getFee(),rate));
+			 	});
+			return ratingModals;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}	
+	}
+	
+	@PostMapping("/addQuery")
+	private HashMap<String, Object> getInTouch(@RequestBody Queries queries){
+		HashMap<String, Object> returnMap= new HashMap<String, Object>();
+		try {
+			Long count = queriesRepository.countTodayQueryByEmail(queries.getEmail());
+			if(count>=3) {
+				returnMap.put("isError", true);
+				returnMap.put("msg", "Only 3 query allowed in a single day");
+				return returnMap;
+			}
+			queries.setStatus("created");
+			queries.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+			queriesRepository.save(queries);
+			returnMap.put("isError", false);
+			returnMap.put("msg", "Your query has been accepted \nTeam will contact you soon");
+			return returnMap;
+		} catch (Exception e) {
+			e.printStackTrace();
+			returnMap.put("isError", true);
+			returnMap.put("msg", "Query not added");
+			return returnMap;
+		}
+		
 	}
 }

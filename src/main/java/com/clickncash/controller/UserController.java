@@ -19,12 +19,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.clickncash.dto.TotalDto;
+import com.clickncash.entity.Course;
 import com.clickncash.entity.PaymentDetails;
 import com.clickncash.entity.PurchasedCourse;
+import com.clickncash.entity.Queries;
 import com.clickncash.entity.User;
+import com.clickncash.model.ChangePassword;
 import com.clickncash.repository.CourseRepository;
 import com.clickncash.repository.PaymentDetailsRepository;
 import com.clickncash.repository.PurchasedCourseRepository;
+import com.clickncash.repository.QueriesRepository;
 import com.clickncash.repository.UserRepository;
 import com.clickncash.service.CourseService;
 import com.clickncash.service.UserService;
@@ -50,6 +55,9 @@ public class UserController {
 	
 	@Autowired
 	private PurchasedCourseRepository purchasedCourseRepository;
+	
+	@Autowired
+	private QueriesRepository queriesRepository;
 
 	@Autowired
 	PasswordEncoder passwordEncoder;
@@ -167,9 +175,9 @@ public class UserController {
 		
 	}
 	
-	@GetMapping("/users/{page}/{record}")
+	@GetMapping("/users/{page}/{record}/{userType}")
 	private Page<User> getAllUsers(@PathVariable("page") Integer page, @PathVariable("record") Integer record,
-			HttpServletRequest request) {
+			@PathVariable("userType") Long userType ,HttpServletRequest request) {
 		try {
 			Long userId = null;
 			if (request.getAttribute("userId") != null) {
@@ -181,7 +189,7 @@ public class UserController {
 			Pageable pageable = PageRequest.of(page, record);
 			User user = userRepository.findById(userId).get();
 			if (user.getUserType() == 1) {
-				return this.userRepository.getAllUsers(pageable);
+				return this.userRepository.getAllUsers(userType,pageable);
 			}
 			return null;
 		} catch (Exception ex) {
@@ -223,28 +231,27 @@ public class UserController {
 			
 			System.out.println("%%%%%%%%%%%%%% userId : "+userId);
 			
-//			String createPayment = courseService.createPayment(paymentDetails, userId);
-//			Calendar cal = Calendar.getInstance();
-//	        cal.add(Calendar.YEAR, 1);
-//	        List<PurchasedCourse> findByCourseIdAndUserId = purchasedCourseRepository.findByCourseIdAndUserId(paymentDetails.getCourseId(),userId);
-//			if (findByCourseIdAndUserId.size()==0) {
-//				PurchasedCourse purchasedCourse = new PurchasedCourse();
-//				purchasedCourse.setCourseId(paymentDetails.getCourseId());
-//				purchasedCourse.setUserId(userId);
-//				purchasedCourse.setEnrolledAt(new Timestamp(System.currentTimeMillis()));
-//				purchasedCourse.setValidTill(new Timestamp(cal.getTimeInMillis()));
-//				purchasedCourseRepository.save(purchasedCourse);
-//			}else {
-//				PurchasedCourse purchasedCourse = findByCourseIdAndUserId.get(0);
-//				purchasedCourse.setEnrolledAt(new Timestamp(System.currentTimeMillis()));
-//				purchasedCourse.setValidTill(new Timestamp(cal.getTimeInMillis()));
-//				purchasedCourseRepository.save(purchasedCourse);
-//			}
-//	        
-//			returnMap.put("isError", false);
-//			returnMap.put("msg", createPayment);
-//			return returnMap;
-			return null;
+			String createPayment = courseService.createPayment(paymentDetails, userId);
+			Calendar cal = Calendar.getInstance();
+	        cal.add(Calendar.YEAR, 1);
+	        List<PurchasedCourse> findByCourseIdAndUserId = purchasedCourseRepository.findByCourseIdAndUserId(paymentDetails.getCourseId(),userId);
+			if (findByCourseIdAndUserId.size()==0) {
+				PurchasedCourse purchasedCourse = new PurchasedCourse();
+				purchasedCourse.setCourseId(paymentDetails.getCourseId());
+				purchasedCourse.setUserId(userId);
+				purchasedCourse.setEnrolledAt(new Timestamp(System.currentTimeMillis()));
+				purchasedCourse.setValidTill(new Timestamp(cal.getTimeInMillis()));
+				purchasedCourseRepository.save(purchasedCourse);
+			}else {
+				PurchasedCourse purchasedCourse = findByCourseIdAndUserId.get(0);
+				purchasedCourse.setEnrolledAt(new Timestamp(System.currentTimeMillis()));
+				purchasedCourse.setValidTill(new Timestamp(cal.getTimeInMillis()));
+				purchasedCourseRepository.save(purchasedCourse);
+			}
+	        
+			returnMap.put("isError", false);
+			returnMap.put("msg", createPayment);
+			return returnMap;
 		} catch (Exception e) {
 			e.getMessage();
 		}
@@ -336,7 +343,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/getRecentStudents")
-	List<User> getRecentStudents(HttpServletRequest request){
+	private List<User> getRecentStudents(HttpServletRequest request){
 		try {
 			Long userId;
 			if (request.getAttribute("userId") != null) {
@@ -352,7 +359,7 @@ public class UserController {
 		}
 	}
 	@GetMapping("/getProfessors")
-	List<User> getProfessorList(HttpServletRequest request){
+	private List<User> getProfessorList(HttpServletRequest request){
 		try {
 			Long userId;
 			if (request.getAttribute("userId") != null) {
@@ -369,7 +376,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/all")
-	List<User> getAllUsers(HttpServletRequest request){
+	private List<User> getAllUsers(HttpServletRequest request){
 		try {
 			Long userId;
 			if (request.getAttribute("userId") != null) {
@@ -384,4 +391,89 @@ public class UserController {
 			return null;
 		}
 	}
+	@GetMapping("/allTeacher")
+	private List<User> getAllTeacher(HttpServletRequest request){
+		try {
+			Long userId;
+			if (request.getAttribute("userId") != null) {
+				userId = Long.valueOf(request.getAttribute("userId").toString());
+			} else {
+				System.out.println(" @@@ user not found of this userId @@@");
+				return null;
+			}
+			return userRepository.findAllUserByUserType(3L);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	@PostMapping("/teacherByCourse")
+	private User getTeacherOfCourse(@RequestBody Course c){
+		try {
+			Long userId;
+			Course course = courseRepository.findById(c.getId()).get();
+			return userRepository.findById(course.getTeacher()).get();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@GetMapping("/totalStdTechr")
+	private HashMap<String, Object> getTotalStudentAndTeacher(){
+		HashMap<String, Object> returnMap = new HashMap<String, Object>();
+		try {
+			TotalDto totalData = userRepository.totalStudentAndTeacher();
+			Long totalCourse = courseRepository.countAllCourse();
+			Long totalStudent = totalData.getTotalStudent();
+			Long totalTeacher = totalData.getTotalTeacher();
+			if (totalCourse==null) { totalCourse=0l; }
+			if (totalStudent==null) { totalStudent=0l;	}
+			if (totalTeacher==null) { totalTeacher=0l;	}
+			returnMap.put("isError", false);
+			returnMap.put("totalStudent", totalStudent);
+			returnMap.put("totalTeacher", totalTeacher);
+			returnMap.put("totalCourse", totalCourse);
+			return returnMap;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			returnMap.put("isError", true);
+			returnMap.put("msg", "Something went wrong on count total data");
+			return returnMap;
+		}	
+	}
+	
+	@PostMapping("/changePassword")
+	private HashMap<String, Object> changePassword(@RequestBody ChangePassword changePassword, HttpServletRequest request){
+		HashMap<String, Object> returnMap = new HashMap<String, Object>();
+		try {
+			Long userId;
+			if (request.getAttribute("userId") != null) {
+				userId = Long.valueOf(request.getAttribute("userId").toString());
+			} else {
+				System.out.println(" @@@ user not found of this userId @@@");
+				return null;
+			}
+			User user = userRepository.findById(userId).get();
+			if (!passwordEncoder.matches(changePassword.getOldPassword(), user.getPassword())) {
+				returnMap.put("isError", true);
+				returnMap.put("msg", "Old password did not matched");
+				return returnMap;
+			}else {
+				user.setPassword(passwordEncoder.encode(changePassword.getNewPassword()));
+				userRepository.save(user);
+			}
+			returnMap.put("isError", false);
+			returnMap.put("msg", "Your password has been changed successfully");
+			return returnMap;
+		} catch (Exception e) {
+			e.printStackTrace();
+			returnMap.put("isError", true);
+			returnMap.put("msg", "Problem in password change operation...");
+			return returnMap;
+		}
+	}
+	
+	
 }

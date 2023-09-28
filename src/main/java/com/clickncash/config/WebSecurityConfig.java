@@ -58,7 +58,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
 				.antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
-						"/**/*.css", "/**/*.js", "/scanner/*", "/rest/auth/login","/rest/auth/signup","/rest/auth/course/list","/rest/auth/course/getOne","/rest/auth/course/getFeatures","/rest/auth/course/getTopics")
+						"/**/*.css", "/**/*.js", "/scanner/*", "/rest/auth/login","/rest/auth/signup","/rest/auth/course/list",
+						"/rest/auth/course/getOne","/rest/auth/course/getFeatures","/rest/auth/user/teacherByCourse",
+						"/rest/auth/course/totalEnroll","/rest/auth/course/getTopics","/rest/auth/course/search",
+						"/rest/auth/ratings/count","/rest/auth/course/live","/rest/auth/course/upcoming","/rest/auth/user/totalStdTechr",
+						"/rest/auth/ratings/testimonial","/rest/auth/course/addQuery")
 				.permitAll()
 				// Remove /** from below. Only for testing
 				.antMatchers("*/rest/auth/login", "/rest/auth/createUser", "/rest/auth/user/generateNewPassword", "/rest/auth/generateToken","/auth/**", "/v2/api-docs", "/configuration/ui", "/swagger-resources",

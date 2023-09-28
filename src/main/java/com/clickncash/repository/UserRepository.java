@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.clickncash.dto.TotalDto;
 import com.clickncash.entity.User;
 
 @Repository
@@ -72,8 +73,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	@Query(nativeQuery = true, value = "SELECT * from user where id !=?5 and (username=?1 or aadhar=?2 or email=?3 or mobile=?4)")
 	List<User> isExist2(String username, String aadharId, String email, String mobile, Long userId);
 
-	@Query(nativeQuery = true, value = "SELECT * from user where userType!=1 order by id desc")
-	Page<User> getAllUsers(Pageable p);
+	@Query(nativeQuery = true, value = "SELECT * from user where userType=?1 order by id desc")
+	Page<User> getAllUsers(Long userType,Pageable p);
 
 	@Query(nativeQuery = true, value = "SELECT * from user where email=?1 or mobile=?1 or username=?1")
 	List<User> searchUser(String email);
@@ -92,4 +93,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	
 	@Query(nativeQuery = true, value = "select * from user where userType=?1 limit 10")
 	List<User> getProfessorsList(Long userType);
+
+	List<User> findAllUserByUserType(long l);
+	
+	@Query(nativeQuery = true, value = "select \r\n"
+			+ "	count(CASE WHEN (userType=4) THEN \"1\" END) as totalStudent,\r\n"
+			+ " count(CASE WHEN (userType=3) THEN \"1\" END) as totalTeacher\r\n"
+			+ "FROM user")
+	TotalDto totalStudentAndTeacher();
 }

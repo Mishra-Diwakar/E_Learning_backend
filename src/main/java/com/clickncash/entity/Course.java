@@ -27,6 +27,7 @@ public class Course {
 	private String header;
 	private String banner;
 	private Timestamp updatedAt;
+	private Long teacher;
 	public Long getId() {
 		return id;
 	}
@@ -108,8 +109,16 @@ public class Course {
 	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+	
+	public Long getTeacher() {
+		return teacher;
+	}
+	public void setTeacher(Long teacher) {
+		this.teacher = teacher;
+	}
 	public Course(Long id, String name, String description, Long fee, Long createdBy, Long updatedBy, String startDate,
-			String startTime, Timestamp createdAt, String duration,String header, String banner, Timestamp updatedAt) {
+			String startTime, Timestamp createdAt, String duration,String header, String banner, Timestamp updatedAt,
+			Long teacher) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -124,6 +133,7 @@ public class Course {
 		this.header = header;
 		this.banner = banner;
 		this.updatedAt = updatedAt;
+		this.teacher = teacher;
 	}
 	public Course() {
 		super();
