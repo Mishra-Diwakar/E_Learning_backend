@@ -40,6 +40,8 @@ public class User {
 	private Long updatedBy;
 	private Timestamp loginAt;
 	private String qualification;
+	private Integer otpNum;
+	private Timestamp otpSentAt;
 	public Long getId() {
 		return id;
 	}
@@ -182,11 +184,24 @@ public class User {
 	public void setQualification(String qualification) {
 		this.qualification = qualification;
 	}
+	public Integer getOtpNum() {
+		return otpNum;
+	}
+	public void setOtpNum(Integer otpNum) {
+		this.otpNum = otpNum;
+	}
 	
+	public Timestamp getOtpSentAt() {
+		return otpSentAt;
+	}
+	public void setOtpSentAt(Timestamp otpSentAt) {
+		this.otpSentAt = otpSentAt;
+	}
 	public User(Long id, String firstName, String lastName, String username, String gender, String email,
 			String password, String mobile, String dob, String pincode, Long userType, String district, String state,
 			boolean status, String aadhar, String postOffice, String policeStation, Timestamp createdAt, Long createdBy,
-			Timestamp updatedAt, Long updatedBy, Timestamp loginAt, String qualification) {
+			Timestamp updatedAt, Long updatedBy, Timestamp loginAt, String qualification, Integer otpNum,
+			Timestamp otpSentAt) {
 		super();
 		this.id = id;
 		this.firstName = firstName;
@@ -211,6 +226,8 @@ public class User {
 		this.updatedBy = updatedBy;
 		this.loginAt = loginAt;
 		this.qualification = qualification;
+		this.otpNum = otpNum;
+		this.otpSentAt = otpSentAt;
 	}
 	public User() {
 		super();

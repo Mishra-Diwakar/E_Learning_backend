@@ -171,11 +171,16 @@ public class CourseController {
 	}
 	@GetMapping("/live")
 	private List<CourseDto> getLiveCourses() {
-		List<CourseDto> findLiveCourses = courseRepository.findLiveCourses();
-		findLiveCourses.forEach(e->{
-			System.out.println("banner: "+e.getBanner()+", "+e.getTeacher()+", "+e.getId()+", "+e.getName()+", "+e.getFee());
-		});
-		return courseRepository.findLiveCourses();
+//		List<CourseDto> findLiveCourses = courseRepository.findLiveCourses();
+//		findLiveCourses.forEach(e->{
+//			System.out.println("banner: "+e.getBanner()+", "+e.getTeacher()+", "+e.getId()+", "+e.getName()+", "+e.getFee());
+//		});
+		try {
+			return courseRepository.findLiveCourses();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	@GetMapping("/upcoming")
 	private List<CourseDto> getUpcomingCourses() {
@@ -619,14 +624,25 @@ public class CourseController {
 				returnMap.put("isError", true);
 				return returnMap;
 			}
-			//delete card first then delete video than delete from database
+//			deleting card and video file
+			if (imageUploader.deleteFile(videos.getBanner())) {
+				if(imageUploader.deleteFile(videos.getVideo())) {
+					videosRepository.deleteById(videos.getId());
+					returnMap.put("msg", "Video has been deleted");
+					returnMap.put("isError", false);
+					return returnMap;
+				}
+				returnMap.put("msg", "Video card has been not deleted");
+				returnMap.put("isError", true);
+				return returnMap;
+			}
 			
-			returnMap.put("msg", "Video deleted");
-			returnMap.put("isError", false);
+			returnMap.put("msg", "Video not deleted");
+			returnMap.put("isError", true);
 			return returnMap;
 		} catch (Exception e) {
 			e.printStackTrace();
-			returnMap.put("msg", "Video not deleted");
+			returnMap.put("msg", "Error in video deletion");
 			returnMap.put("isError", true);
 			return returnMap;
 		}
@@ -717,5 +733,30 @@ public class CourseController {
 			return returnMap;
 		}
 		
+	}
+	
+	@PostMapping("/solveQuery")
+	private HashMap<String,Object> solveQuery(@RequestBody Queries q, HttpServletRequest request){
+		HashMap<String,Object> returnMap = new HashMap<String,Object>();
+		try {
+			Long userId = null;
+			if (request.getAttribute("userId") != null) {
+				userId = Long.valueOf(request.getAttribute("userId").toString());
+			} else {
+				System.out.println("User not found for this id..");
+				return null;
+			}	
+			Queries queries = queriesRepository.findById(q.getId()).get();
+			queries.setStatus("solved");
+			queriesRepository.save(queries);
+			returnMap.put("isError", false);
+			returnMap.put("msg", "Query resolved");
+			return returnMap;
+		} catch (Exception e) {
+			e.printStackTrace();
+			returnMap.put("isError", true);
+			returnMap.put("msg", "Query not resolved");
+			return returnMap;
+		}
 	}
 }

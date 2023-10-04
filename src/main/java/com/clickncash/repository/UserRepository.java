@@ -88,7 +88,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	@Query(nativeQuery = true, value = "select count(id) as total from user where userType=?1 and status=true")
 	Long countAvlTeacher(Long userType);
 	
-	@Query(nativeQuery = true, value = "select * from user where userType=?1 and month(createdAt)= month(now()) and year(createdAt)=year(now()) limit 10")
+	@Query(nativeQuery = true, value = "select * from user where userType=?1 order by id desc limit 10")
 	List<User> getRecentStudents(Long userType);
 	
 	@Query(nativeQuery = true, value = "select * from user where userType=?1 limit 10")

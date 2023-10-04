@@ -25,7 +25,9 @@ public class Images {
 	@Autowired
 	UserRepository userRepository;
 	public final String VIDEO_PATH="C:\\Users\\admin\\angular\\eLearning\\src\\assets\\images";
-	public final String COURSE_CARD="C:\\Users\\admin\\angular\\eLearning\\src\\assets\\images\\CourseCard";
+//	public final String COURSE_CARD="C:\\Users\\admin\\angular\\eLearning\\src\\assets\\images\\CourseCard";
+	public final String COURSE_CARD="C:\\Users\\admin\\angular\\eLearning\\src\\assets\\images";
+
 	public String uploadCourseBanner(MultipartFile multipartFile) {
 		String filename=multipartFile.getOriginalFilename();
 		   String mimeType =  multipartFile.getContentType();

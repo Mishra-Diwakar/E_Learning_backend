@@ -1,10 +1,10 @@
-package com.example.ClicknCash;
+package com.clickncash;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ClicknCashApplicationTests {
+class LearningApplicationTests {
 
 	@Test
 	void contextLoads() {
